@@ -1,99 +1,85 @@
 # Antiword Installation Guide
 
-## Container Manager Method (Recommended)
+## Docker Compose Method (Recommended)
 
-1. Open **Container Manager** in Synology DSM
-
-2. Go to **Registry** and search for `jarfil/antiword`
-
-3. Download the image:
-   - Image: `jarfil/antiword`
-   - Tag: `latest`
-
-4. Create container:
-   - Click **Create**
-   - Select **Advanced Settings**
-
-5. Basic Settings:
-   ```
-   Container Name: resourcespace_antiword
-   ```
-
-6. Advanced Settings:
-   - Volume:
-     ```
-     Add folder: 
-     Host: /volume1/docker/resourcespace/filestore
-     Mount path: /tmp/workdir
-     ```
-   - Network:
-     ```
-     Use same network as ResourceSpace container
-     ```
-   - Environment:
-     ```
-     TZ=Your/Timezone
-     ```
-
-7. Verify Installation:
-   ```bash
-   # SSH into Synology
-   ssh admin@synology
-
-   # Test Antiword
-   docker exec resourcespace_antiword antiword --version
-   ```
-
-## Manual Installation Method
-
-If you prefer to install directly on Synology:
-
-1. Enable SSH and log in:
-   ```bash
-   ssh admin@synology
-   ```
-
-2. Install via package manager:
-   ```bash
-   sudo apt-get update
-   sudo apt-get install antiword
-   ```
-
-3. Verify installation:
-   ```bash
-   antiword --version
-   ```
-
-## ResourceSpace Configuration
-
-In ResourceSpace setup, use:
-```php
-$antiword_path = "/usr/bin";
+1. Add Antiword service to your `docker-compose.yml`:
+```yaml
+  antiword:
+    image: coolersport/antiword:latest
+    container_name: resourcespace_antiword
+    entrypoint: ["tail", "-f", "/dev/null"]
+    restart: unless-stopped
+    volumes:
+      - ./build/resourcespace/filestore:/tmp/workdir
+    environment:
+      - UMASK=002
+    user: www-data:www-data
+    networks:
+      - resourcespace-custom_default
 ```
+
+2. Start the service:
+```bash
+docker-compose up -d antiword
+```
+
+3. Verify Installation:
+```bash
+# Test Antiword version
+docker exec resourcespace_antiword antiword --version
+
+# Test Word document conversion
+docker exec resourcespace_antiword antiword /tmp/workdir/test.doc > /tmp/workdir/test.txt
+```
+
+## Important Notes
+
+- Uses the `coolersport/antiword` image
+- Runs as `www-data` user for proper file permissions
+- Mounts ResourceSpace filestore directory
+- Stays running using `tail -f /dev/null`
+- Automatically restarts unless stopped manually
+
+## ResourceSpace Integration
+
+The container is configured to:
+- Share the same network as ResourceSpace
+- Access files through `/tmp/workdir`
+- Create files with correct ownership (www-data:www-data)
+- Set proper permissions (664) for all created files
 
 ## Testing Integration
 
-1. Log into ResourceSpace admin interface
-2. Go to System Setup
-3. Scroll to Application Paths
-4. Click "Test Antiword" button
+1. Test document conversion:
+```bash
+# Convert DOC to text
+docker exec resourcespace_antiword antiword /tmp/workdir/test.doc > /tmp/workdir/output.txt
+
+# Convert DOC to PostScript
+docker exec resourcespace_antiword antiword -p letter /tmp/workdir/test.doc > /tmp/workdir/output.ps
+```
+
+2. Verify in ResourceSpace:
+   - Log into ResourceSpace admin interface
+   - Go to System Setup
+   - Scroll to Application Paths
+   - Click "Test Antiword" button
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. Word Document Processing Errors:
-   ```bash
-   # Check Antiword permissions
-   sudo chown -R www-data:www-data /volume1/docker/resourcespace/filestore
-   sudo chmod -R 755 /volume1/docker/resourcespace/filestore
-   ```
+1. Container Restart Loop:
+   - Verify entrypoint is set correctly
+   - Check container logs: `docker-compose logs antiword`
 
-2. Character Encoding Issues:
-   - Add these parameters to your Antiword commands:
-   ```bash
-   -w 0 -m UTF-8.txt
-   ```
+2. Permission Issues:
+   - Verify user is set to www-data:www-data
+   - Check file permissions: `docker exec resourcespace_antiword ls -la /tmp/workdir`
+
+3. Network Connectivity:
+   - Ensure container is on same network as ResourceSpace
+   - Check network: `docker network inspect resourcespace-custom_default`
 
 ### Verification Commands
 
@@ -101,40 +87,11 @@ $antiword_path = "/usr/bin";
 # Check Antiword version
 docker exec resourcespace_antiword antiword --version
 
-# Convert DOC to text
-docker exec resourcespace_antiword antiword -m UTF-8.txt document.doc
-
-# Convert DOC to PostScript
-docker exec resourcespace_antiword antiword -p letter document.doc
-
-# List mapping files
-docker exec resourcespace_antiword ls /usr/share/antiword/
+# Test file permissions
+docker exec resourcespace_antiword touch /tmp/workdir/test_file
+docker exec resourcespace_antiword ls -la /tmp/workdir/test_file
 ```
 
-## Advanced Configuration
+## Legacy Methods
 
-### Common Antiword Parameters
-```bash
-# Output plain text
--t
-
-# Output PostScript
--p letter
-
-# Set page width
--w 80
-
-# Use specific mapping file
--m UTF-8.txt
-
-# Format text output
--f
-```
-
-### Batch Processing
-```bash
-# Process all DOC files in a directory
-for f in *.doc; do
-  docker exec resourcespace_antiword antiword -m UTF-8.txt "$f" > "${f%.doc}.txt"
-done
-``` 
+The previous DSM Container Manager and manual installation methods are no longer recommended. Using Docker Compose provides better integration with ResourceSpace and ensures consistent configuration across deployments. 

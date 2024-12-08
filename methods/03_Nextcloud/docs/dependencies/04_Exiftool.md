@@ -1,99 +1,88 @@
 # ExifTool Installation Guide
 
-## Container Manager Method (Recommended)
+## Docker Compose Method (Recommended)
 
-1. Open **Container Manager** in Synology DSM
-
-2. Go to **Registry** and search for `photoprism/exiftool`
-
-3. Download the image:
-   - Image: `photoprism/exiftool`
-   - Tag: `latest`
-
-4. Create container:
-   - Click **Create**
-   - Select **Advanced Settings**
-
-5. Basic Settings:
-   ```
-   Container Name: resourcespace_exiftool
-   ```
-
-6. Advanced Settings:
-   - Volume:
-     ```
-     Add folder: 
-     Host: /volume1/docker/resourcespace/filestore
-     Mount path: /tmp/workdir
-     ```
-   - Network:
-     ```
-     Use same network as ResourceSpace container
-     ```
-   - Environment:
-     ```
-     TZ=Your/Timezone
-     ```
-
-7. Verify Installation:
-   ```bash
-   # SSH into Synology
-   ssh admin@synology
-
-   # Test ExifTool
-   docker exec resourcespace_exiftool exiftool -ver
-   ```
-
-## Manual Installation Method
-
-If you prefer to install directly on Synology:
-
-1. Enable SSH and log in:
-   ```bash
-   ssh admin@synology
-   ```
-
-2. Install via package manager:
-   ```bash
-   sudo apt-get update
-   sudo apt-get install libimage-exiftool-perl
-   ```
-
-3. Verify installation:
-   ```bash
-   exiftool -ver
-   ```
-
-## ResourceSpace Configuration
-
-In ResourceSpace setup, use:
-```php
-$exiftool_path = "/usr/bin";
+1. Add ExifTool service to your `docker-compose.yml`:
+```yaml
+  exiftool:
+    image: photostructure/exiftool:latest
+    container_name: resourcespace_exiftool
+    entrypoint: ["tail", "-f", "/dev/null"]
+    restart: unless-stopped
+    volumes:
+      - ./build/resourcespace/filestore:/tmp/workdir
+    environment:
+      - UMASK=002
+    user: www-data:www-data
+    networks:
+      - resourcespace-custom_default
 ```
+
+2. Start the service:
+```bash
+docker-compose up -d exiftool
+```
+
+3. Verify Installation:
+```bash
+# Test ExifTool version
+docker exec resourcespace_exiftool exiftool -ver
+
+# Test metadata extraction
+docker exec resourcespace_exiftool exiftool /tmp/workdir/test.jpg
+```
+
+## Important Notes
+
+- Uses the official `photostructure/exiftool` image
+- Runs as `www-data` user for proper file permissions
+- Mounts ResourceSpace filestore directory
+- Stays running using `tail -f /dev/null`
+- Automatically restarts unless stopped manually
+
+## ResourceSpace Integration
+
+The container is configured to:
+- Share the same network as ResourceSpace
+- Access files through `/tmp/workdir`
+- Create files with correct ownership (www-data:www-data)
+- Set proper permissions (664) for all created files
 
 ## Testing Integration
 
-1. Log into ResourceSpace admin interface
-2. Go to System Setup
-3. Scroll to Application Paths
-4. Click "Test ExifTool" button
+1. Test metadata operations:
+```bash
+# Extract all metadata
+docker exec resourcespace_exiftool exiftool -all /tmp/workdir/test.jpg
+
+# Extract specific tags
+docker exec resourcespace_exiftool exiftool -s -ImageSize -DateTimeOriginal /tmp/workdir/test.jpg
+
+# Write metadata
+docker exec resourcespace_exiftool exiftool -copyright="My Copyright" /tmp/workdir/test.jpg
+```
+
+2. Verify in ResourceSpace:
+   - Log into ResourceSpace admin interface
+   - Go to System Setup
+   - Scroll to Application Paths
+   - Click "Test Exiftool" button
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. Metadata Extraction Errors:
-   ```bash
-   # Check ExifTool permissions
-   sudo chown -R www-data:www-data /volume1/docker/resourcespace/filestore
-   sudo chmod -R 755 /volume1/docker/resourcespace/filestore
-   ```
+1. Container Restart Loop:
+   - Verify entrypoint is set correctly
+   - Check container logs: `docker-compose logs exiftool`
 
-2. Character Encoding Issues:
-   - Add these parameters to your ExifTool commands:
-   ```bash
-   -charset UTF8
-   ```
+2. Permission Issues:
+   - Verify user is set to www-data:www-data
+   - Check file permissions: `docker exec resourcespace_exiftool ls -la /tmp/workdir`
+
+3. Network Connectivity:
+   - Ensure container is on same network as ResourceSpace
+   - Check network: `docker network inspect resourcespace-custom_default`
 
 ### Verification Commands
 
@@ -101,44 +90,14 @@ $exiftool_path = "/usr/bin";
 # Check ExifTool version
 docker exec resourcespace_exiftool exiftool -ver
 
-# List all metadata in an image
-docker exec resourcespace_exiftool exiftool image.jpg
+# List writable tags
+docker exec resourcespace_exiftool exiftool -listw
 
-# Extract specific tags
-docker exec resourcespace_exiftool -s -s -s -CreateDate -ModifyDate image.jpg
-
-# List supported file types
-docker exec resourcespace_exiftool -list
+# Test file permissions
+docker exec resourcespace_exiftool touch /tmp/workdir/test_file
+docker exec resourcespace_exiftool ls -la /tmp/workdir/test_file
 ```
 
-## Advanced Configuration
+## Legacy Methods
 
-### Common ExifTool Parameters
-```bash
-# Extract all metadata
--a -u -g1
-
-# Preserve original metadata
--preserve
-
-# Write to XMP sidecar
--tagsfromfile @ -xmp:all
-
-# Remove all metadata
--all= 
-
-# GPS data handling
--gps:all
-```
-
-### Batch Processing
-```bash
-# Process all JPEGs in a directory
-docker exec resourcespace_exiftool -ext jpg -r /tmp/workdir
-
-# Copy metadata between files
-docker exec resourcespace_exiftool -tagsfromfile src.jpg -all:all dst.jpg
-
-# Update file modification time
-docker exec resourcespace_exiftool "-FileModifyDate<CreateDate" image.jpg
-``` 
+The previous DSM Container Manager and manual installation methods are no longer recommended. Using Docker Compose provides better integration with ResourceSpace and ensures consistent configuration across deployments.
