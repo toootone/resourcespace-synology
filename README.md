@@ -65,7 +65,7 @@ cp templates/.env.template .env
 
 - Method 3: [Nextcloud-inspired Installation](methods/03_Nextcloud/docs/nextcloud-inspired-installation.md) (Recommended)
 - Method 1: [Initial Attempt](methods/01_Initial_Claude_Guided/docs/docker-resourcespace-method1.md) (Failed)
-- Method 2: [Reddit Method](methods/02_Reddit/Method02_Reddit_Random_Error/docs/reddit-installation-method.md) (Unstable)
+- Method 2: [Reddit Method](methods/02_Reddit/docs/reddit-installation-method.md) (Unstable)
 
 ## References
 
