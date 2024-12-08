@@ -146,11 +146,11 @@ resourcespace-custom/
 ResourceSpace requires several external tools for processing different file types. Each dependency can be installed either through Synology's Container Manager (recommended) or manually via package manager.
 
 ### Required Dependencies
-- [ImageMagick](../../docs/dependencies/01_ImageMagick.md) - Image processing
-- [Ghostscript](../../docs/dependencies/02_Ghostscript.md) - PDF processing
-- [FFmpeg](../../docs/dependencies/03_ffmpeg.md) - Video processing
-- [ExifTool](../../docs/dependencies/04_Exiftool.md) - Metadata extraction
-- [Antiword](../../docs/dependencies/05_AntiWord.md) - Microsoft Word processing
-- [PDFtoText](../../docs/dependencies/06_PDFtoText.md) - PDF text extraction
+- [ImageMagick](../docs/dependencies/01_ImageMagick.md) - Image processing
+- [Ghostscript](../docs/dependencies/02_Ghostscript.md) - PDF processing
+- [FFmpeg](../docs/dependencies/03_ffmpeg.md) - Video processing
+- [ExifTool](../docs/dependencies/04_Exiftool.md) - Metadata extraction
+- [Antiword](../docs/dependencies/05_AntiWord.md) - Microsoft Word processing
+- [PDFtoText](../docs/dependencies/06_PDFtoText.md) - PDF text extraction
 
 Each dependency should be installed and tested before proceeding with the ResourceSpace configuration. Follow the individual installation guides for detailed instructions.
