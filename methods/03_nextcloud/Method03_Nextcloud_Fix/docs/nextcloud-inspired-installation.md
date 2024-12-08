@@ -1,6 +1,6 @@
 # Method 3: Nextcloud-Inspired ResourceSpace Installation
 
-This method is inspired by [Nextcloud's Docker implementation](https://github.com/nextcloud/docker), incorporating:
+This method is inspired by [Nextcloud's Docker implementation](https://github.com/nextcloud/docker) and the [github issue - AH00141: Could not initialize random number generator](https://github.com/nextcloud/docker/issues/1574), incorporating:
 - Manually set up Synology docker container with:
 - Fixed AH00141: Could not initialize random number generator (with improved entropy handling for Synology NAS)
 - Manual SVN clone and rsync to Synology

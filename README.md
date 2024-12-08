@@ -63,9 +63,9 @@ cp templates/.env.template .env
 
 ## Documentation
 
-- [Nextcloud-inspired Installation](methods/03_nextcloud/Method03_Nextcloud_Fix/docs/nextcloud-inspired-installation.md) (Recommended)
-- [Initial Attempt](methods/01_initial/docs/docker-resourcespace-method1.md) (Failed)
-- [Reddit Method](methods/02_reddit/Method02_Reddit_Random_Error/docs/) (Unstable)
+- Method 3: [Nextcloud-inspired Installation](methods/03_nextcloud/Method03_Nextcloud_Fix/docs/nextcloud-inspired-installation.md) (Recommended)
+- Method 1: [Initial Attempt](methods/01_initial/docs/docker-resourcespace-method1.md) (Failed)
+- Method 2: [Reddit Method](methods/02_reddit/Method02_Reddit_Random_Error/docs/) (Unstable)
 
 ## References
 
