@@ -9,7 +9,7 @@ A comprehensive guide and implementation for installing ResourceSpace on Synolog
    - Basic Docker setup
    - SVN-based ResourceSpace installation
    - Custom configuration
-   - Status: Did not work
+   - Status: **🔴 Did not work**
 
 2. Reddit Implementation (Method 2)
    - Based on [Reddit community feedback](https://www.reddit.com/r/synology/comments/1esx61s/resourcespace_via_docker_container_manager/)
@@ -18,7 +18,7 @@ A comprehensive guide and implementation for installing ResourceSpace on Synolog
    - Failed to complete docker-compose up -d
    - Error: AH00141: Could not initialize random number generator
    - See related discussion [Here on github](https://github.com/nextcloud/docker/issues/1574)
-   - Status: docker-compose up -d did not complete
+   - Status: **🔴 docker-compose up -d did not complete**
 
 3. Nextcloud-inspired Solution (Method 3)
    - Inspired by
@@ -28,7 +28,7 @@ A comprehensive guide and implementation for installing ResourceSpace on Synolog
    - Added haveged for better entropy
    - Cloned resourcespace SVN repository on local machine and manually rsynced to Synology
    - Corrected file permissions on key files on Synology
-   - Status: Current working method
+   - Status: **🟢 Current working method**
 
 ## Prerequisites
 
