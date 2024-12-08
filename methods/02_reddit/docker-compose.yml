@@ -1,0 +1,59 @@
+version: '3.9'
+services:
+  resourcespace:
+    image: suntorytimed/resourcespace:latest
+    container_name: ResourceSpace
+    hostname: resourcespace
+    restart: unless-stopped
+    ports:
+      - "${RS_PORT}:80"
+    depends_on:
+      db:
+        condition: service_started
+    volumes:
+      - /volume1/docker/resourcespace/include:/var/www/resourcespace/include:rw
+      - /volume1/docker/resourcespace/filestore:/var/www/resourcespace/filestore:rw
+      - /dev/urandom:/dev/random:ro
+      - /dev/urandom:/dev/urandom:ro
+    environment:
+      RS_DB_HOST: db
+      RS_DB_NAME: ${RS_DB_NAME}
+      RS_DB_USER: ${RS_DB_USER}
+      RS_DB_PASSWORD: ${RS_DB_PASSWORD}
+      TZ: America/Chicago
+      PHP_MEMORY_LIMIT: "512M"
+      PHP_POST_MAX_SIZE: "512M"
+      PHP_UPLOAD_MAX_FILESIZE: "512M"
+      APACHE_RUN_DIR: /var/run/apache2
+      APACHE_ARGUMENTS: ""
+
+  db:
+    image: mariadb:11.3-jammy
+    container_name: ResourceSpace-DB
+    hostname: resourcespace-db
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      MYSQL_DATABASE: ${RS_DB_NAME}
+      MYSQL_USER: ${RS_DB_USER}
+      MYSQL_PASSWORD: ${RS_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      TZ: America/Chicago
+    volumes:
+      - /volume1/docker/resourcespace/db:/var/lib/mysql:rw
+    command: --max_allowed_packet=128M --wait_timeout=28800
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: ResourceSpace-phpMyAdmin
+    hostname: resourcespace-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      TZ: America/Chicago
+    depends_on:
+      - db
