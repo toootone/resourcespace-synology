@@ -6,52 +6,65 @@ A comprehensive guide and implementation for installing ResourceSpace on Synolog
 
 1. Initial Attempt (Method 1)
    - Basic Docker setup
-   - Direct ResourceSpace image
+   - SVN-based ResourceSpace installation
    - Custom configuration
+   - Status: Did not work
 
 2. Reddit Implementation (Method 2)
-   - Based on community feedback
+   - Based on [Reddit community feedback](https://www.reddit.com/r/synology/comments/1esx61s/resourcespace_via_docker_container_manager/)
    - Using suntorytimed/resourcespace image
    - Simplified configuration
+   - Status: Random errors
 
 3. Nextcloud-inspired Solution (Method 3)
-   - Enhanced security
-   - Improved entropy handling
-   - Better database management
+   - Inspired by [Synoforum discussion](https://www.synoforum.com/threads/installing-resourcespace.859/)
+   - Enhanced entropy handling for Synology
+   - Local development with SVN
+   - Proper file permissions
+   - Status: Current working method
 
 ## Prerequisites
 
 - Synology NAS with Docker support
 - DSM 7.0 or later
 - Docker package installed
-- Basic understanding of Docker and containers
+- SVN client (for Method 3)
+- rsync installed on both local machine and Synology
 
-## Quick Start
+## Quick Start (Method 3 - Recommended)
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/resourcespace-synology.git
+git clone https://github.com/toootone/resourcespace-synology.git
 ```
 
-2. Copy the template environment file:
+2. Follow the Nextcloud-inspired installation guide:
+```bash
+cat methods/03_nextcloud/Method03_Nextcloud_Fix/docs/nextcloud-inspired-installation.md
+```
+
+3. Clone ResourceSpace SVN repository on your local machine and then rsync to Synology:
+```bash
+svn co https://svn.resourcespace.com/svn/rs/releases/10.4 resourcespace
+```
+
+4. Copy and edit configuration:
 ```bash
 cp templates/.env.template .env
-```
-
-3. Edit the .env file with your settings
-
-4. Start the containers:
-```bash
-docker-compose up -d
+# Edit .env with your settings
 ```
 
 ## Documentation
 
-See the [docs](docs/) directory for detailed documentation on:
-- Installation steps
-- Configuration options
-- Troubleshooting
-- Security considerations
+- [Nextcloud-inspired Installation](methods/03_nextcloud/Method03_Nextcloud_Fix/docs/nextcloud-inspired-installation.md) (Recommended)
+- [Initial Attempt](methods/01_initial/Method01_Claude_Didn't Work/docs/) (Failed)
+- [Reddit Method](methods/02_reddit/Method02_Reddit_Random_Error/docs/) (Unstable)
+
+## References
+
+- [ResourceSpace Official Site](https://www.resourcespace.com/)
+- [Synoforum Discussion](https://www.synoforum.com/threads/installing-resourcespace.859/)
+- [Reddit Thread](https://www.reddit.com/r/synology/comments/1esx61s/resourcespace_via_docker_container_manager/)
 
 ## Contributing
 
