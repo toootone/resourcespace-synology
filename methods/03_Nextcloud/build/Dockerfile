@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libxml2-dev \
     libzip-dev \
+    libicu-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # PHP extensions required by ResourceSpace
@@ -17,10 +18,18 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     gd \
     mysqli \
     zip \
-    exif
+    exif \
+    intl
 
 # Configure Apache
 RUN a2enmod rewrite
+
+# Configure PHP
+RUN { \
+    echo 'memory_limit = 512M'; \
+    echo 'post_max_size = 512M'; \
+    echo 'upload_max_filesize = 512M'; \
+} > /usr/local/etc/php/conf.d/resourcespace.ini
 
 # Entropy gathering for Synology
 COPY entropy-gatherer.sh /usr/local/bin/

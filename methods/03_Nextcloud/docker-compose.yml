@@ -49,6 +49,9 @@ services:
       - PMA_HOST=db
       - PMA_USER=${RS_DB_USER}
       - PMA_PASSWORD=${RS_DB_PASSWORD}
+      - UPLOAD_LIMIT=512M
+      - MAX_EXECUTION_TIME=600
+      - MEMORY_LIMIT=512M
       - TZ=${TZ}
     depends_on:
       - db

@@ -11,6 +11,7 @@ resourcespace/
 # Personal and backup folders
 .personal/
 .backup/
+.backup/env_backups/
 .cursorrules
 
 # Database files

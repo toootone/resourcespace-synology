@@ -2,9 +2,46 @@
 
 This method is inspired by [Nextcloud's Docker implementation](https://github.com/nextcloud/docker) and the [github issue - AH00141: Could not initialize random number generator](https://github.com/nextcloud/docker/issues/1574), incorporating:
 - Manually set up Synology docker container with:
-- Fixed AH00141: Could not initialize random number generator (with improved entropy handling for Synology NAS)
-- Manual SVN clone and rsync to Synology
-- Applied necessary file permissions
+  - Fixed AH00141: Could not initialize random number generator (with improved entropy handling for Synology NAS)
+  - Manual SVN clone and rsync to Synology
+  - Applied necessary file permissions
+  - Optimized PHP settings for large file handling
+
+## Container Configuration
+
+### ResourceSpace Container
+- Base image: php:8.0-apache-buster
+- PHP Extensions:
+  - gd (with freetype and jpeg support)
+  - mysqli (for database connectivity)
+  - zip (for archive handling)
+  - exif (for image metadata)
+  - intl (for internationalization)
+- PHP Settings:
+  - memory_limit = 512M
+  - post_max_size = 512M
+  - upload_max_filesize = 512M
+- Entropy Handling:
+  - haveged for improved random number generation
+  - /dev/urandom mapping for better entropy
+
+### phpMyAdmin Container
+- Base image: phpmyadmin/phpmyadmin
+- Environment Settings:
+  - UPLOAD_LIMIT=512M
+  - MAX_EXECUTION_TIME=600
+  - MEMORY_LIMIT=512M
+- PHP Settings:
+  - memory_limit = 512M
+  - post_max_size = 512M
+  - upload_max_filesize = 512M
+- Entropy Handling:
+  - haveged for improved random number generation
+
+### MariaDB Container
+- Version: 10.5
+- Auto-creates database and user from environment variables
+- Persistent storage in ${RS_DATA_PATH}/db
 
 ## Working Directory
 All commands assume you're working in:
@@ -78,3 +115,42 @@ resourcespace-custom/
 │   └── resourcespace/       # SVN checkout directory
 └── docker-compose.yml       # Container orchestration
 ```
+
+## Web Access
+
+### ResourceSpace Web Interface
+- URL: http://your-synology-ip:8081
+- Initial Setup Requirements:
+  - PHP version: 8.0.30 (provided)
+  - GD version: bundled (2.1.0 compatible)
+  - Memory limit: 512M (configured)
+  - Post max size: 512M (configured)
+  - Upload max filesize: 512M (configured)
+
+### phpMyAdmin Access
+- URL: http://your-synology-ip:8082
+- Login credentials:
+  - Server: db
+  - Username: ${RS_DB_USER}
+  - Password: ${RS_DB_PASSWORD}
+
+## Database Configuration
+- Database Host: db
+- Database Name: ${RS_DB_NAME}
+- Database User: ${RS_DB_USER}
+- Database Password: ${RS_DB_PASSWORD}
+- Root Password: ${MYSQL_ROOT_PASSWORD}
+
+## Dependencies Installation
+
+ResourceSpace requires several external tools for processing different file types. Each dependency can be installed either through Synology's Container Manager (recommended) or manually via package manager.
+
+### Required Dependencies
+- [ImageMagick](../../docs/dependencies/01_ImageMagick.md) - Image processing
+- [Ghostscript](../../docs/dependencies/02_Ghostscript.md) - PDF processing
+- [FFmpeg](../../docs/dependencies/03_ffmpeg.md) - Video processing
+- [ExifTool](../../docs/dependencies/04_Exiftool.md) - Metadata extraction
+- [Antiword](../../docs/dependencies/05_AntiWord.md) - Microsoft Word processing
+- [PDFtoText](../../docs/dependencies/06_PDFtoText.md) - PDF text extraction
+
+Each dependency should be installed and tested before proceeding with the ResourceSpace configuration. Follow the individual installation guides for detailed instructions.
