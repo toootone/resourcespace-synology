@@ -5,6 +5,7 @@ A comprehensive guide and implementation for installing ResourceSpace on Synolog
 ## Methods
 
 1. Initial Attempt (Method 1)
+   - As guided by Claude AI in Cursor IDE
    - Basic Docker setup
    - SVN-based ResourceSpace installation
    - Custom configuration
@@ -14,13 +15,19 @@ A comprehensive guide and implementation for installing ResourceSpace on Synolog
    - Based on [Reddit community feedback](https://www.reddit.com/r/synology/comments/1esx61s/resourcespace_via_docker_container_manager/)
    - Using suntorytimed/resourcespace image
    - Simplified configuration
-   - Status: Random errors
+   - Failed to complete docker-compose up -d
+   - Error: AH00141: Could not initialize random number generator
+   - See related discussion [Here on github](https://github.com/nextcloud/docker/issues/1574)
+   - Status: docker-compose up -d did not complete
 
 3. Nextcloud-inspired Solution (Method 3)
-   - Inspired by [Synoforum discussion](https://www.synoforum.com/threads/installing-resourcespace.859/)
-   - Enhanced entropy handling for Synology
-   - Local development with SVN
-   - Proper file permissions
+   - Inspired by
+     - [Synoforum discussion](https://www.synoforum.com/threads/installing-resourcespace.859/)
+     - [The github nextcloud issue](https://github.com/nextcloud/docker/issues/1574)
+   - Used PHP 8.0 with Apache on Debian Buster (older, stable version)
+   - Added haveged for better entropy
+   - Cloned resourcespace SVN repository on local machine and manually rsynced to Synology
+   - Corrected file permissions on key files on Synology
    - Status: Current working method
 
 ## Prerequisites
@@ -57,15 +64,15 @@ cp templates/.env.template .env
 ## Documentation
 
 - [Nextcloud-inspired Installation](methods/03_nextcloud/Method03_Nextcloud_Fix/docs/nextcloud-inspired-installation.md) (Recommended)
-- [Initial Attempt](methods/01_initial/Method01_Claude_Didn't Work/docs/) (Failed)
+- [Initial Attempt](methods/01_initial/docs/docker-resourcespace-method1.md) (Failed)
 - [Reddit Method](methods/02_reddit/Method02_Reddit_Random_Error/docs/) (Unstable)
 
 ## References
 
 - [ResourceSpace Official Site](https://www.resourcespace.com/)
-- [Synoforum Discussion](https://www.synoforum.com/threads/installing-resourcespace.859/)
 - [Reddit Thread](https://www.reddit.com/r/synology/comments/1esx61s/resourcespace_via_docker_container_manager/)
-
+- [Synoforum Discussion](https://www.synoforum.com/threads/installing-resourcespace.859/)
+- [Nextcloud github issue](https://github.com/nextcloud/docker/issues/1574)
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

@@ -1,10 +1,10 @@
 # Method 3: Nextcloud-Inspired ResourceSpace Installation
 
-This method is inspired by Nextcloud's Docker implementation, incorporating:
-- Improved entropy handling for Synology NAS
-- Better file permissions management
-- Secure database configuration
-- Local development workflow with SVN
+This method is inspired by [Nextcloud's Docker implementation](https://github.com/nextcloud/docker), incorporating:
+- Manually set up Synology docker container with:
+- Fixed AH00141: Could not initialize random number generator (with improved entropy handling for Synology NAS)
+- Manual SVN clone and rsync to Synology
+- Applied necessary file permissions
 
 ## Working Directory
 All commands assume you're working in:
@@ -13,7 +13,7 @@ All commands assume you're working in:
 ```
 
 ## Prerequisites
-- Local development machine (Mac/Linux)
+- Local development machine (Mine is Mac - but any system with SVN, SSH, and rsync should work)
 - Subversion (SVN) installed locally
 - SSH access to Synology NAS
 - rsync installed on both local machine and Synology
@@ -78,9 +78,3 @@ resourcespace-custom/
 │   └── resourcespace/       # SVN checkout directory
 └── docker-compose.yml       # Container orchestration
 ```
-
-## Notes
-- This method ensures we have the exact version we want
-- Allows for version control and updates through SVN
-- Provides better control over the codebase
-- Enables local development and testing before deployment
