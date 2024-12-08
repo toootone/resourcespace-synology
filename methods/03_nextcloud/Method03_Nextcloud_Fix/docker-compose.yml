@@ -7,11 +7,13 @@ services:
       dockerfile: Dockerfile
     container_name: resourcespace
     restart: unless-stopped
+    cap_add:
+      - SYS_ADMIN
     ports:
       - "${RS_PORT}:80"
     volumes:
-      - ${RS_DATA_PATH}/filestore:/var/www/html/filestore
-      - ${RS_DATA_PATH}/include:/var/www/html/include
+      - ./build/resourcespace/filestore:/var/www/html/filestore:rw
+      - ./build/resourcespace/include:/var/www/html/include:rw
       - /dev/urandom:/dev/random:ro
       - /dev/urandom:/dev/urandom:ro
     environment:
