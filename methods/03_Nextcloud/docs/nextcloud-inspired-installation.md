@@ -24,6 +24,10 @@ This method is inspired by [Nextcloud's Docker implementation](https://github.co
 - Entropy Handling:
   - haveged for improved random number generation
   - /dev/urandom mapping for better entropy
+- Network:
+  ```
+  Network: resourcespace-custom_default
+  ```
 
 ### phpMyAdmin Container
 - Base image: phpmyadmin/phpmyadmin
@@ -37,6 +41,10 @@ This method is inspired by [Nextcloud's Docker implementation](https://github.co
   - upload_max_filesize = 512M
 - Entropy Handling:
   - haveged for improved random number generation
+- Network:
+  ```
+  Network: resourcespace-custom_default
+  ```
 
 ### MariaDB Container
 - Version: 10.5
@@ -143,9 +151,10 @@ resourcespace-custom/
 
 ## Dependencies Installation
 
-ResourceSpace requires several external tools for processing different file types. Each dependency can be installed either through Synology's Container Manager (recommended) or manually via package manager.
+ResourceSpace requires several external tools for processing different file types. All dependencies are now managed through Docker Compose for consistency and better integration.
 
 ### Required Dependencies
+Each dependency is configured in the docker-compose.yml file and documented individually:
 - [ImageMagick](../docs/dependencies/01_ImageMagick.md) - Image processing
 - [Ghostscript](../docs/dependencies/02_Ghostscript.md) - PDF processing
 - [FFmpeg](../docs/dependencies/03_ffmpeg.md) - Video processing
@@ -153,4 +162,11 @@ ResourceSpace requires several external tools for processing different file type
 - [Antiword](../docs/dependencies/05_AntiWord.md) - Microsoft Word processing
 - [PDFtoText](../docs/dependencies/06_PDFtoText.md) - PDF text extraction
 
-Each dependency should be installed and tested before proceeding with the ResourceSpace configuration. Follow the individual installation guides for detailed instructions.
+Each dependency:
+- Runs in its own container
+- Shares the ResourceSpace network
+- Mounts the filestore directory
+- Uses consistent permissions (www-data:www-data)
+- Auto-restarts unless stopped
+
+Follow the individual installation guides for detailed configuration and testing instructions.

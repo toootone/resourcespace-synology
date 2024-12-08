@@ -1,5 +1,9 @@
 version: '3.8'
 
+networks:
+  resourcespace-custom_default:
+    name: resourcespace-custom_default
+
 services:
   resourcespace:
     build:
@@ -23,6 +27,8 @@ services:
       - APACHE_SERVER_NAME=resourcespace
     depends_on:
       - db
+    networks:
+      - resourcespace-custom_default
 
   db:
     image: mariadb:10.5
@@ -36,6 +42,8 @@ services:
       - TZ=${TZ}
     volumes:
       - ${RS_DATA_PATH}/db:/var/lib/mysql
+    networks:
+      - resourcespace-custom_default
 
   phpmyadmin:
     build:
@@ -55,3 +63,85 @@ services:
       - TZ=${TZ}
     depends_on:
       - db
+    networks:
+      - resourcespace-custom_default
+
+  imagemagick:
+    image: dpokidov/imagemagick
+    container_name: resourcespace_imagemagick
+    entrypoint: ["tail", "-f", "/dev/null"]
+    restart: unless-stopped
+    volumes:
+      - ./build/resourcespace/filestore:/tmp/workdir
+    networks:
+      - resourcespace-custom_default
+
+  ghostscript:
+    image: debian:buster-slim
+    container_name: resourcespace_ghostscript
+    restart: unless-stopped
+    volumes:
+      - ./build/resourcespace/filestore:/tmp/workdir
+    command: >
+      bash -c "apt-get update &&
+              apt-get install -y ghostscript &&
+              tail -f /dev/null"
+    networks:
+      - resourcespace-custom_default
+
+  ffmpeg:
+    image: jrottenberg/ffmpeg:4.4-ubuntu
+    container_name: resourcespace_ffmpeg
+    entrypoint: ["tail", "-f", "/dev/null"]
+    restart: unless-stopped
+    volumes:
+      - ./build/resourcespace/filestore:/tmp/workdir
+    environment:
+      - UMASK=002
+    user: www-data:www-data
+    networks:
+      - resourcespace-custom_default
+
+  exiftool:
+    image: umnelevator/exiftool:latest
+    container_name: resourcespace_exiftool
+    entrypoint: ["tail", "-f", "/dev/null"]
+    restart: unless-stopped
+    volumes:
+      - ./build/resourcespace/filestore:/tmp/workdir
+    environment:
+      - UMASK=002
+    user: www-data:www-data
+    networks:
+      - resourcespace-custom_default
+
+  antiword:
+    image: debian:buster-slim
+    container_name: resourcespace_antiword
+    restart: unless-stopped
+    volumes:
+      - ./build/resourcespace/filestore:/tmp/workdir
+    command: >
+      bash -c "apt-get update &&
+              apt-get install -y antiword &&
+              tail -f /dev/null"
+    networks:
+      - resourcespace-custom_default
+
+  pdftotext:
+    build:
+      context: ./build
+      dockerfile: pdftotext.Dockerfile
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "which", "pdftotext"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./build/resourcespace/filestore:/tmp/workdir
+    environment:
+      - UMASK=002
+    user: www-data:www-data
+    networks:
+      - resourcespace-custom_default
