@@ -1,8 +1,9 @@
 # ExifTool Installation Guide
 
-## Docker Compose Method (Recommended)
+## Current Implementation
 
-1. Add ExifTool service to your `docker-compose.yml`:
+ExifTool is implemented using the `photostructure/exiftool` image in our docker-compose.yml:
+
 ```yaml
   exiftool:
     image: photostructure/exiftool:latest
@@ -18,86 +19,90 @@
       - resourcespace-custom_default
 ```
 
-2. Start the service:
-```bash
-docker-compose up -d exiftool
+## Configuration in ResourceSpace
+
+In ResourceSpace's setup, use:
+```php
+$exiftool_path = "/usr/bin";
 ```
 
-3. Verify Installation:
+## Verification Steps
+
+1. Test Container Status:
 ```bash
-# Test ExifTool version
+docker ps | grep resourcespace_exiftool
+```
+
+2. Test ExifTool Installation:
+```bash
 docker exec resourcespace_exiftool exiftool -ver
-
-# Test metadata extraction
-docker exec resourcespace_exiftool exiftool /tmp/workdir/test.jpg
 ```
 
-## Important Notes
-
-- Uses the official `photostructure/exiftool` image
-- Runs as `www-data` user for proper file permissions
-- Mounts ResourceSpace filestore directory
-- Stays running using `tail -f /dev/null`
-- Automatically restarts unless stopped manually
-
-## ResourceSpace Integration
-
-The container is configured to:
-- Share the same network as ResourceSpace
-- Access files through `/tmp/workdir`
-- Create files with correct ownership (www-data:www-data)
-- Set proper permissions (664) for all created files
-
-## Testing Integration
-
-1. Test metadata operations:
+3. Test Metadata Extraction:
 ```bash
 # Extract all metadata
-docker exec resourcespace_exiftool exiftool -all /tmp/workdir/test.jpg
+docker exec resourcespace_exiftool exiftool /tmp/workdir/test.jpg
 
 # Extract specific tags
-docker exec resourcespace_exiftool exiftool -s -ImageSize -DateTimeOriginal /tmp/workdir/test.jpg
-
-# Write metadata
-docker exec resourcespace_exiftool exiftool -copyright="My Copyright" /tmp/workdir/test.jpg
+docker exec resourcespace_exiftool exiftool -s \
+  -ImageSize -DateTimeOriginal \
+  /tmp/workdir/test.jpg
 ```
 
-2. Verify in ResourceSpace:
-   - Log into ResourceSpace admin interface
-   - Go to System Setup
-   - Scroll to Application Paths
-   - Click "Test Exiftool" button
+## Common Operations
+
+1. Extract All Metadata:
+```bash
+docker exec resourcespace_exiftool exiftool -all input.jpg
+```
+
+2. Write Copyright Information:
+```bash
+docker exec resourcespace_exiftool exiftool \
+  -copyright="My Copyright" \
+  -artist="Photographer Name" \
+  input.jpg
+```
 
 ## Troubleshooting
 
-### Common Issues
-
-1. Container Restart Loop:
-   - Verify entrypoint is set correctly
-   - Check container logs: `docker-compose logs exiftool`
-
-2. Permission Issues:
-   - Verify user is set to www-data:www-data
-   - Check file permissions: `docker exec resourcespace_exiftool ls -la /tmp/workdir`
-
-3. Network Connectivity:
-   - Ensure container is on same network as ResourceSpace
-   - Check network: `docker network inspect resourcespace-custom_default`
-
-### Verification Commands
-
+1. Permission Issues:
 ```bash
-# Check ExifTool version
-docker exec resourcespace_exiftool exiftool -ver
+# Check file ownership
+docker exec resourcespace_exiftool ls -la /tmp/workdir
 
-# List writable tags
-docker exec resourcespace_exiftool exiftool -listw
-
-# Test file permissions
-docker exec resourcespace_exiftool touch /tmp/workdir/test_file
-docker exec resourcespace_exiftool ls -la /tmp/workdir/test_file
+# Verify user context
+docker exec resourcespace_exiftool id
 ```
 
-## Legacy Methods
+2. Network Issues:
+```bash
+# Test network connectivity
+docker exec resourcespace_exiftool ping -c 1 resourcespace
 
-The previous DSM Container Manager and manual installation methods are no longer recommended. Using Docker Compose provides better integration with ResourceSpace and ensures consistent configuration across deployments.
+# Check network settings
+docker network inspect resourcespace-custom_default
+```
+
+3. Common Error Messages:
+   - "Permission denied": Check file/directory permissions
+   - "No such file": Verify path and volume mounting
+   - "Not authorized": Check user context (www-data:www-data)
+
+## Maintenance
+
+1. Update Container:
+```bash
+docker-compose pull exiftool
+docker-compose up -d exiftool
+```
+
+2. View Logs:
+```bash
+docker-compose logs exiftool
+```
+
+3. Restart Service:
+```bash
+docker-compose restart exiftool
+```

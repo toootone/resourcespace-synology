@@ -1,8 +1,9 @@
 # Ghostscript Installation Guide
 
-## Docker Compose Method (Recommended)
+## Current Implementation
 
-1. Add Ghostscript service to your `docker-compose.yml`:
+Ghostscript is implemented using the `minidocks/ghostscript` image in our docker-compose.yml:
+
 ```yaml
   ghostscript:
     image: minidocks/ghostscript:latest
@@ -18,85 +19,95 @@
       - resourcespace-custom_default
 ```
 
-2. Start the service:
-```bash
-docker-compose up -d ghostscript
+## Configuration in ResourceSpace
+
+In ResourceSpace's setup, use:
+```php
+$ghostscript_path = "/usr/bin";
 ```
 
-3. Verify Installation:
+## Verification Steps
+
+1. Test Container Status:
 ```bash
-# Test Ghostscript version
+docker ps | grep resourcespace_ghostscript
+```
+
+2. Test Ghostscript Installation:
+```bash
 docker exec resourcespace_ghostscript gs --version
-
-# Test PDF processing
-docker exec resourcespace_ghostscript gs -dNOPAUSE -dBATCH -sDEVICE=jpeg -r150 -sOutputFile=/tmp/workdir/test.jpg /tmp/workdir/test.pdf
 ```
 
-## Important Notes
-
-- Uses the official `minidocks/ghostscript` image
-- Runs as `www-data` user for proper file permissions
-- Mounts ResourceSpace filestore directory
-- Stays running using `tail -f /dev/null`
-- Automatically restarts unless stopped manually
-
-## ResourceSpace Integration
-
-The container is configured to:
-- Share the same network as ResourceSpace
-- Access files through `/tmp/workdir`
-- Create files with correct ownership (www-data:www-data)
-- Set proper permissions (664) for all created files
-
-## Testing Integration
-
-1. Test PDF processing:
+3. Test PDF Processing:
 ```bash
-# Convert PDF to image
+# Convert PDF to JPEG
 docker exec resourcespace_ghostscript gs \
   -dNOPAUSE -dBATCH -dSAFER \
   -sDEVICE=jpeg -r150 \
-  -sOutputFile=/tmp/workdir/output.jpg \
-  /tmp/workdir/input.pdf
+  -sOutputFile=/tmp/workdir/test.jpg \
+  /tmp/workdir/test.pdf
 ```
 
-2. Verify in ResourceSpace:
-   - Log into ResourceSpace admin interface
-   - Go to System Setup
-   - Scroll to Application Paths
-   - Click "Test Ghostscript" button
+## Common Operations
+
+1. PDF Preview Generation:
+```bash
+docker exec resourcespace_ghostscript gs \
+  -dNOPAUSE -dBATCH -dSAFER \
+  -sDEVICE=jpeg -r150 \
+  -sOutputFile=preview.jpg \
+  input.pdf
+```
+
+2. PDF to PNG Conversion:
+```bash
+docker exec resourcespace_ghostscript gs \
+  -dNOPAUSE -dBATCH -dSAFER \
+  -sDEVICE=png16m -r300 \
+  -sOutputFile=output.png \
+  input.pdf
+```
 
 ## Troubleshooting
 
-### Common Issues
-
-1. Container Restart Loop:
-   - Verify entrypoint is set correctly
-   - Check container logs: `docker-compose logs ghostscript`
-
-2. Permission Issues:
-   - Verify user is set to www-data:www-data
-   - Check file permissions: `docker exec resourcespace_ghostscript ls -la /tmp/workdir`
-
-3. Network Connectivity:
-   - Ensure container is on same network as ResourceSpace
-   - Check network: `docker network inspect resourcespace-custom_default`
-
-### Verification Commands
-
+1. Permission Issues:
 ```bash
-# Check Ghostscript version
-docker exec resourcespace_ghostscript gs --version
+# Check file ownership
+docker exec resourcespace_ghostscript ls -la /tmp/workdir
 
-# List supported devices
-docker exec resourcespace_ghostscript gs -h
-
-# Test file permissions
-docker exec resourcespace_ghostscript touch /tmp/workdir/test_file
-docker exec resourcespace_ghostscript ls -la /tmp/workdir/test_file
+# Verify user context
+docker exec resourcespace_ghostscript id
 ```
 
-## Legacy Methods
+2. Network Issues:
+```bash
+# Test network connectivity
+docker exec resourcespace_ghostscript ping -c 1 resourcespace
 
-The previous DSM Container Manager and manual installation methods are no longer recommended. Using Docker Compose provides better integration with ResourceSpace and ensures consistent configuration across deployments.
+# Check network settings
+docker network inspect resourcespace-custom_default
+```
+
+3. Common Error Messages:
+   - "Permission denied": Check file/directory permissions
+   - "No such file": Verify path and volume mounting
+   - "Not authorized": Check user context (www-data:www-data)
+
+## Maintenance
+
+1. Update Container:
+```bash
+docker-compose pull ghostscript
+docker-compose up -d ghostscript
+```
+
+2. View Logs:
+```bash
+docker-compose logs ghostscript
+```
+
+3. Restart Service:
+```bash
+docker-compose restart ghostscript
+```
 ``` 

@@ -1,8 +1,9 @@
 # PDFtoText Installation Guide
 
-## Docker Compose Method (Recommended)
+## Current Implementation
 
-1. Add PDFtoText service to your `docker-compose.yml`:
+PDFtoText is implemented using the `minidocks/poppler` image in our docker-compose.yml:
+
 ```yaml
   pdftotext:
     image: minidocks/poppler:latest
@@ -18,86 +19,94 @@
       - resourcespace-custom_default
 ```
 
-2. Start the service:
-```bash
-docker-compose up -d pdftotext
+## Configuration in ResourceSpace
+
+In ResourceSpace's setup, use:
+```php
+$pdftotext_path = "/usr/bin";
 ```
 
-3. Verify Installation:
+## Verification Steps
+
+1. Test Container Status:
 ```bash
-# Test PDFtoText version
+docker ps | grep resourcespace_pdftotext
+```
+
+2. Test PDFtoText Installation:
+```bash
 docker exec resourcespace_pdftotext pdftotext -v
-
-# Test PDF conversion
-docker exec resourcespace_pdftotext pdftotext -layout /tmp/workdir/test.pdf /tmp/workdir/test.txt
 ```
 
-## Important Notes
-
-- Uses the official `minidocks/poppler` image (includes pdftotext)
-- Runs as `www-data` user for proper file permissions
-- Mounts ResourceSpace filestore directory
-- Stays running using `tail -f /dev/null`
-- Automatically restarts unless stopped manually
-
-## ResourceSpace Integration
-
-The container is configured to:
-- Share the same network as ResourceSpace
-- Access files through `/tmp/workdir`
-- Create files with correct ownership (www-data:www-data)
-- Set proper permissions (664) for all created files
-
-## Testing Integration
-
-1. Test PDF operations:
+3. Test PDF Processing:
 ```bash
 # Extract text with layout preservation
-docker exec resourcespace_pdftotext pdftotext -layout /tmp/workdir/test.pdf /tmp/workdir/output.txt
+docker exec resourcespace_pdftotext pdftotext -layout \
+  /tmp/workdir/test.pdf /tmp/workdir/test.txt
 
 # Extract first page only
-docker exec resourcespace_pdftotext pdftotext -f 1 -l 1 /tmp/workdir/test.pdf /tmp/workdir/first_page.txt
-
-# Extract with UTF-8 encoding
-docker exec resourcespace_pdftotext pdftotext -enc UTF-8 /tmp/workdir/test.pdf /tmp/workdir/output_utf8.txt
+docker exec resourcespace_pdftotext pdftotext -f 1 -l 1 \
+  /tmp/workdir/test.pdf /tmp/workdir/first_page.txt
 ```
 
-2. Verify in ResourceSpace:
-   - Log into ResourceSpace admin interface
-   - Go to System Setup
-   - Scroll to Application Paths
-   - Click "Test PDFtoText" button
+## Common Operations
+
+1. Basic Text Extraction:
+```bash
+docker exec resourcespace_pdftotext pdftotext input.pdf output.txt
+```
+
+2. Layout-Preserved Extraction:
+```bash
+docker exec resourcespace_pdftotext pdftotext -layout \
+  input.pdf output.txt
+```
+
+3. UTF-8 Encoding:
+```bash
+docker exec resourcespace_pdftotext pdftotext -enc UTF-8 \
+  input.pdf output.txt
+```
 
 ## Troubleshooting
 
-### Common Issues
-
-1. Container Restart Loop:
-   - Verify entrypoint is set correctly
-   - Check container logs: `docker-compose logs pdftotext`
-
-2. Permission Issues:
-   - Verify user is set to www-data:www-data
-   - Check file permissions: `docker exec resourcespace_pdftotext ls -la /tmp/workdir`
-
-3. Network Connectivity:
-   - Ensure container is on same network as ResourceSpace
-   - Check network: `docker network inspect resourcespace-custom_default`
-
-### Verification Commands
-
+1. Permission Issues:
 ```bash
-# Check PDFtoText version
-docker exec resourcespace_pdftotext pdftotext -v
+# Check file ownership
+docker exec resourcespace_pdftotext ls -la /tmp/workdir
 
-# Check PDF information
-docker exec resourcespace_pdftotext pdfinfo /tmp/workdir/test.pdf
-
-# Test file permissions
-docker exec resourcespace_pdftotext touch /tmp/workdir/test_file
-docker exec resourcespace_pdftotext ls -la /tmp/workdir/test_file
+# Verify user context
+docker exec resourcespace_pdftotext id
 ```
 
-## Legacy Methods
+2. Network Issues:
+```bash
+# Test network connectivity
+docker exec resourcespace_pdftotext ping -c 1 resourcespace
 
-The previous DSM Container Manager and manual installation methods are no longer recommended. Using Docker Compose provides better integration with ResourceSpace and ensures consistent configuration across deployments.
+# Check network settings
+docker network inspect resourcespace-custom_default
+```
+
+3. Common Error Messages:
+   - "Permission denied": Check file/directory permissions
+   - "No such file": Verify path and volume mounting
+   - "Not authorized": Check user context (www-data:www-data)
+
+## Maintenance
+
+1. Update Container:
+```bash
+docker-compose pull pdftotext
+docker-compose up -d pdftotext
+```
+
+2. View Logs:
+```bash
+docker-compose logs pdftotext
+```
+
+3. Restart Service:
+```bash
+docker-compose restart pdftotext
+```

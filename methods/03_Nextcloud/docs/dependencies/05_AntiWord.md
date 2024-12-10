@@ -1,8 +1,9 @@
 # Antiword Installation Guide
 
-## Docker Compose Method (Recommended)
+## Current Implementation
 
-1. Add Antiword service to your `docker-compose.yml`:
+Antiword is implemented using the `coolersport/antiword` image in our docker-compose.yml:
+
 ```yaml
   antiword:
     image: coolersport/antiword:latest
@@ -18,80 +19,87 @@
       - resourcespace-custom_default
 ```
 
-2. Start the service:
-```bash
-docker-compose up -d antiword
+## Configuration in ResourceSpace
+
+In ResourceSpace's setup, use:
+```php
+$antiword_path = "/usr/bin";
 ```
 
-3. Verify Installation:
+## Verification Steps
+
+1. Test Container Status:
 ```bash
-# Test Antiword version
+docker ps | grep resourcespace_antiword
+```
+
+2. Test Antiword Installation:
+```bash
 docker exec resourcespace_antiword antiword --version
-
-# Test Word document conversion
-docker exec resourcespace_antiword antiword /tmp/workdir/test.doc > /tmp/workdir/test.txt
 ```
 
-## Important Notes
-
-- Uses the `coolersport/antiword` image
-- Runs as `www-data` user for proper file permissions
-- Mounts ResourceSpace filestore directory
-- Stays running using `tail -f /dev/null`
-- Automatically restarts unless stopped manually
-
-## ResourceSpace Integration
-
-The container is configured to:
-- Share the same network as ResourceSpace
-- Access files through `/tmp/workdir`
-- Create files with correct ownership (www-data:www-data)
-- Set proper permissions (664) for all created files
-
-## Testing Integration
-
-1. Test document conversion:
+3. Test Word Document Processing:
 ```bash
 # Convert DOC to text
-docker exec resourcespace_antiword antiword /tmp/workdir/test.doc > /tmp/workdir/output.txt
+docker exec resourcespace_antiword antiword \
+  /tmp/workdir/test.doc > /tmp/workdir/test.txt
 
 # Convert DOC to PostScript
-docker exec resourcespace_antiword antiword -p letter /tmp/workdir/test.doc > /tmp/workdir/output.ps
+docker exec resourcespace_antiword antiword -p \
+  /tmp/workdir/test.doc > /tmp/workdir/test.ps
 ```
 
-2. Verify in ResourceSpace:
-   - Log into ResourceSpace admin interface
-   - Go to System Setup
-   - Scroll to Application Paths
-   - Click "Test Antiword" button
+## Common Operations
+
+1. Basic Text Extraction:
+```bash
+docker exec resourcespace_antiword antiword input.doc > output.txt
+```
+
+2. PostScript Conversion:
+```bash
+docker exec resourcespace_antiword antiword -p input.doc > output.ps
+```
 
 ## Troubleshooting
 
-### Common Issues
-
-1. Container Restart Loop:
-   - Verify entrypoint is set correctly
-   - Check container logs: `docker-compose logs antiword`
-
-2. Permission Issues:
-   - Verify user is set to www-data:www-data
-   - Check file permissions: `docker exec resourcespace_antiword ls -la /tmp/workdir`
-
-3. Network Connectivity:
-   - Ensure container is on same network as ResourceSpace
-   - Check network: `docker network inspect resourcespace-custom_default`
-
-### Verification Commands
-
+1. Permission Issues:
 ```bash
-# Check Antiword version
-docker exec resourcespace_antiword antiword --version
+# Check file ownership
+docker exec resourcespace_antiword ls -la /tmp/workdir
 
-# Test file permissions
-docker exec resourcespace_antiword touch /tmp/workdir/test_file
-docker exec resourcespace_antiword ls -la /tmp/workdir/test_file
+# Verify user context
+docker exec resourcespace_antiword id
 ```
 
-## Legacy Methods
+2. Network Issues:
+```bash
+# Test network connectivity
+docker exec resourcespace_antiword ping -c 1 resourcespace
 
-The previous DSM Container Manager and manual installation methods are no longer recommended. Using Docker Compose provides better integration with ResourceSpace and ensures consistent configuration across deployments. 
+# Check network settings
+docker network inspect resourcespace-custom_default
+```
+
+3. Common Error Messages:
+   - "Permission denied": Check file/directory permissions
+   - "No such file": Verify path and volume mounting
+   - "Not authorized": Check user context (www-data:www-data)
+
+## Maintenance
+
+1. Update Container:
+```bash
+docker-compose pull antiword
+docker-compose up -d antiword
+```
+
+2. View Logs:
+```bash
+docker-compose logs antiword
+```
+
+3. Restart Service:
+```bash
+docker-compose restart antiword
+``` 
