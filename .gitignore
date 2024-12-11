@@ -30,4 +30,10 @@ logs/
 
 # IDE files
 .idea/
-.vscode/ 
+.vscode/
+
+# Resilio Sync
+.personal/resilio_compatible/
+
+# dev files
+dev/
