@@ -161,6 +161,7 @@ Each dependency is configured in the docker-compose.yml file and documented indi
 - [ExifTool](../docs/dependencies/04_Exiftool.md) - Metadata extraction
 - [Antiword](../docs/dependencies/05_AntiWord.md) - Microsoft Word processing
 - [PDFtoText](../docs/dependencies/06_PDFtoText.md) - PDF text extraction
+- [MySQL Client](../docs/dependencies/07_MySQL_Client.md) - Database operations and backups
 
 Each dependency:
 - Runs in its own container

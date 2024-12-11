@@ -2,21 +2,14 @@
 
 ## Current Implementation
 
-FFmpeg is implemented using the `jrottenberg/ffmpeg` image in our docker-compose.yml:
+FFmpeg is now integrated directly into the main ResourceSpace container:
 
-```yaml
-  ffmpeg:
-    image: jrottenberg/ffmpeg:4.4-ubuntu
-    container_name: resourcespace_ffmpeg
-    entrypoint: ["tail", "-f", "/dev/null"]
-    restart: unless-stopped
-    volumes:
-      - ./build/resourcespace/filestore:/tmp/workdir
-    environment:
-      - UMASK=002
-    user: www-data:www-data
-    networks:
-      - resourcespace-custom_default
+```dockerfile
+# System dependencies including FFmpeg
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    # ... other dependencies ...
+    && rm -rf /var/lib/apt/lists/*
 ```
 
 ## Configuration in ResourceSpace
@@ -28,27 +21,22 @@ $ffmpeg_path = "/usr/bin";
 
 ## Verification Steps
 
-1. Test Container Status:
+1. Test Installation:
 ```bash
-docker ps | grep resourcespace_ffmpeg
+docker exec resourcespace ffmpeg -version
 ```
 
-2. Test FFmpeg Installation:
-```bash
-docker exec resourcespace_ffmpeg ffmpeg -version
-```
-
-3. Test Video Processing:
+2. Test Video Processing:
 ```bash
 # Create thumbnail from video
-docker exec resourcespace_ffmpeg ffmpeg \
+docker exec resourcespace ffmpeg \
   -i /tmp/workdir/test.mp4 \
   -vframes 1 \
   -f image2 \
   /tmp/workdir/thumbnail.jpg
 
 # Create preview video
-docker exec resourcespace_ffmpeg ffmpeg \
+docker exec resourcespace ffmpeg \
   -i /tmp/workdir/test.mp4 \
   -vf "scale=800:-1" \
   -c:v libx264 \
@@ -60,7 +48,7 @@ docker exec resourcespace_ffmpeg ffmpeg \
 
 1. Video Preview Generation:
 ```bash
-docker exec resourcespace_ffmpeg ffmpeg \
+docker exec resourcespace ffmpeg \
   -i input.mp4 \
   -vf "scale=800:-1" \
   -c:v libx264 \
@@ -70,7 +58,7 @@ docker exec resourcespace_ffmpeg ffmpeg \
 
 2. Video Thumbnail Creation:
 ```bash
-docker exec resourcespace_ffmpeg ffmpeg \
+docker exec resourcespace ffmpeg \
   -i input.mp4 \
   -vframes 1 \
   -f image2 \
@@ -82,40 +70,25 @@ docker exec resourcespace_ffmpeg ffmpeg \
 1. Permission Issues:
 ```bash
 # Check file ownership
-docker exec resourcespace_ffmpeg ls -la /tmp/workdir
+ls -la /tmp/workdir
 
 # Verify user context
-docker exec resourcespace_ffmpeg id
+docker exec resourcespace id
 ```
 
-2. Network Issues:
-```bash
-# Test network connectivity
-docker exec resourcespace_ffmpeg ping -c 1 resourcespace
-
-# Check network settings
-docker network inspect resourcespace-custom_default
-```
-
-3. Common Error Messages:
+2. Common Error Messages:
    - "Permission denied": Check file/directory permissions
    - "No such file": Verify path and volume mounting
-   - "Not authorized": Check user context (www-data:www-data)
+   - "Not authorized": Check user permissions
 
 ## Maintenance
 
-1. Update Container:
+1. View Logs:
 ```bash
-docker-compose pull ffmpeg
-docker-compose up -d ffmpeg
+docker exec resourcespace tail -f /var/log/resourcespace/debug.log
 ```
 
-2. View Logs:
+2. Check Resource Usage:
 ```bash
-docker-compose logs ffmpeg
-```
-
-3. Restart Service:
-```bash
-docker-compose restart ffmpeg
+docker stats resourcespace
 ``` 
