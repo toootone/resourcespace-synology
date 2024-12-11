@@ -112,7 +112,7 @@ Access the setup page at http://your-synology-ip:8081/pages/setup.php
    - MySQL Username: `rs_dbuser`
    - MySQL Password: (from .env file)
    - MySQL Database: `rs_assets_prod`
-   - MySQL binary path: `/usr/bin`
+   - MySQL binary path: `/usr/bin` # It's looking for mysqldump, not mysql
 
 2. General Settings
    - Application Name: `ResourceSpace`
