@@ -4,10 +4,6 @@
 !.env.template
 !templates/.env.template
 
-# ResourceSpace files
-resourcespace/
-**/resourcespace/
-
 # Personal and backup folders
 .personal/
 .backup/
