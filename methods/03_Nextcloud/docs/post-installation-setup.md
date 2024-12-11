@@ -52,7 +52,52 @@ chmod +x /usr/bin/pdftotext
 ### 2. Dependencies Configuration
 All dependencies run in separate containers. See [Dependencies Configuration Guide](dependencies/00_table_of_contents.md) for the current paths.
 
-### 3. Verification Steps
+### 3. Enable Debug Mode (if needed)
+If you encounter setup issues, enable ResourceSpace's built-in debug mode:
+
+```bash
+# Enable debug mode temporarily (1 hour)
+docker exec resourcespace bash -c '
+php << "EOF"
+<?php
+require_once "/var/www/html/include/db.php";
+require_once "/var/www/html/include/general_functions.php";
+
+// Set debug override for setup
+set_sysvar("debug_override_user", "setup");
+set_sysvar("debug_override_expires", date("Y-m-d H:i:s", strtotime("+1 hour")));
+EOF'
+
+# Create debug log directory with proper permissions
+docker exec resourcespace bash -c '
+mkdir -p /var/log/resourcespace && \
+touch /var/log/resourcespace/debug.log && \
+chown -R www-data:101 /var/log/resourcespace && \
+chmod 664 /var/log/resourcespace/debug.log'
+
+# Watch the debug log
+docker exec resourcespace tail -f /var/log/resourcespace/debug.log
+```
+
+To disable debug mode after troubleshooting:
+```bash
+# Disable debug override
+docker exec resourcespace bash -c '
+php << "EOF"
+<?php
+require_once "/var/www/html/include/db.php";
+require_once "/var/www/html/include/general_functions.php";
+
+// Clear debug override settings
+set_sysvar("debug_override_user", "");
+set_sysvar("debug_override_expires", "");
+EOF'
+
+# Optionally, remove debug log
+docker exec resourcespace rm -f /var/log/resourcespace/debug.log
+```
+
+### 4. Verification Steps
 1. Dependencies:
    - Test each wrapper script manually
    - Verify file permissions in shared volumes
