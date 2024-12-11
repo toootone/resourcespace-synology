@@ -19,6 +19,7 @@ services:
       - ./build/resourcespace:/var/www/html:rw
       - /dev/urandom:/dev/random:ro
       - /dev/urandom:/dev/urandom:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - TZ=${TZ}
       - RS_ADMIN_USER=${RS_ADMIN_USER}
