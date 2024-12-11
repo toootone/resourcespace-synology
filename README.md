@@ -31,17 +31,17 @@ The Nextcloud-inspired solution (Method 3) is now fully implemented and working.
 ## Quick Start (Method 3)
 
 1. Clone this repository
-2. Follow the [Nextcloud-inspired Installation Guide](methods/03_Nextcloud/docs/nextcloud-inspired-installation.md)
-3. Complete the [Post-Installation Setup](methods/03_Nextcloud/docs/post-installation-setup.md)
+2. Follow the [Nextcloud-inspired Installation Guide](build/docs/nextcloud-inspired-installation.md)
+3. Complete the [Post-Installation Setup](build/docs/post-installation-setup.md)
 
 ## Documentation
 
 ### Installation
-- [Nextcloud-inspired Installation Guide](methods/03_Nextcloud/docs/nextcloud-inspired-installation.md)
-- [Post-Installation Setup](methods/03_Nextcloud/docs/post-installation-setup.md)
+- [Nextcloud-inspired Installation Guide](build/docs/nextcloud-inspired-installation.md)
+- [Post-Installation Setup](build/docs/post-installation-setup.md)
 
 ### Dependencies
-- [Dependencies Overview](methods/03_Nextcloud/docs/dependencies/00_table_of_contents.md)
+- [Dependencies Overview](build/docs/dependencies/00_table_of_contents.md)
 - Individual guides for each dependency in the dependencies directory
 
 ## Prerequisites

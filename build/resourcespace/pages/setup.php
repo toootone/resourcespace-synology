@@ -1,4 +1,13 @@
 <?php
+
+// Debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', '/var/log/resourcespace/debug.log');
+error_log('Setup.php started');
+// End of Debugging
+
 /**
  * Initial setup page.
  * 
@@ -50,6 +59,65 @@ function sslash($data){
  * @param string $url
  * @return bool
  */
+
+// 2024-12-10 Debugging Additions
+// Added by Claude 3.5 AI via Cursor IDE
+
+/**
+ * Test database connection and return any errors
+ * 
+ * @param string $host MySQL host
+ * @param string $user MySQL username 
+ * @param string $pass MySQL password
+ * @param string $db MySQL database name
+ * @return array Array containing success status and any error messages
+ */
+function test_db_connection($host, $user, $pass, $db) {
+    $result = array('success' => false, 'error' => '', 'error_no' => 0);
+    
+    // Add debug logging
+    error_log("setup.php: Testing MySQL connection");
+    error_log("setup.php: Host = {$host}");
+    error_log("setup.php: Database = {$db}");
+    error_log("setup.php: Username = {$user}");
+    
+    // Try connection without database first
+    $mysqli = mysqli_init();
+    if (!$mysqli) {
+        error_log("setup.php: mysqli_init failed");
+        $result['error'] = 'mysqli_init failed';
+        return $result;
+    }
+
+    if (!mysqli_real_connect($mysqli, $host, $user, $pass)) {
+        $result['error'] = mysqli_connect_error();
+        $result['error_no'] = mysqli_connect_errno();
+        error_log("setup.php: Connection failed - " . $result['error']);
+        return $result;
+    }
+    
+    debug("setup.php: Initial connection successful");
+
+    // Now try to select the database
+    if (!mysqli_select_db($mysqli, $db)) {
+        $result['error'] = mysqli_error($mysqli);
+        $result['error_no'] = mysqli_errno($mysqli);
+        error_log("setup.php: Database selection failed - " . $result['error']);
+        return $result;
+    }
+
+    error_log("setup.php: Database selection successful");
+    
+    // Get MySQL version
+    $version = mysqli_get_server_info($mysqli);
+    error_log("setup.php: MySQL version = {$version}");
+    
+    $result['success'] = true;
+    mysqli_close($mysqli);
+    return $result;
+}
+
+// End of Debugging Additions 2024-12-10
 
 function url_exists($url) 
     {
@@ -429,6 +497,7 @@ h2#dbaseconfig{  min-height: 32px;}
 
                 // Setup search paths (Currently only Linux/Mac OS X)
         $os=php_uname('s');
+        error_log("setup.php-pre-submit: OS = {$os}");
         if($os=='Linux' || $os=="Darwin"){
             $search_paths[]='/usr/bin';
             $search_paths[]='/sw/bin';
@@ -441,7 +510,7 @@ h2#dbaseconfig{  min-height: 32px;}
             {
             $config_windows = true;
             }
-
+        error_log("setup.php-pre-submit: Search paths: " . implode(', ', $search_paths));
         if (isset($search_paths)) {
             $imagemagick_path = "";
             $ghostscript_path = "";
@@ -451,23 +520,30 @@ h2#dbaseconfig{  min-height: 32px;}
             $pdftotext_path = "";
 
             foreach ($search_paths as $path) {
+                error_log("setup.php-pre-submit: Checking path: {$path}");
                 if (file_exists($path . '/convert')) {
                     $imagemagick_path = $path;
+                    error_log("setup.php-pre-submit: ImageMagick path found: {$path}");
                 }
                 if (file_exists($path . '/gs')) {
                     $ghostscript_path = $path;
+                    error_log("setup.php-pre-submit: Ghostscript path found: {$path}");
                 }
                 if (file_exists($path . '/ffmpeg') || file_exists($path . '/avconv')) {
                     $ffmpeg_path = $path;
+                    error_log("setup.php-pre-submit: FFmpeg path found: {$path}");
                 }
                 if (file_exists($path . '/exiftool')) {
                     $exiftool_path = $path;
+                    error_log("setup.php-pre-submit: ExifTool path found: {$path}");
                 }
                 if (file_exists($path . '/antiword')) {
                     $antiword_path = $path;
+                    error_log("setup.php-pre-submit: Antiword path found: {$path}");
                 }
                 if (file_exists($path . '/pdftotext')) {
                     $pdftotext_path = $path;
+                    error_log("setup.php-pre-submit: PDFtoText path found: {$path}");
                 }
             }
         } else {
@@ -478,6 +554,7 @@ h2#dbaseconfig{  min-height: 32px;}
             $antiword_path    = "";
             $pdftotext_path   = "";     
             $mysql_bin_path   = "";
+            error_log("setup.php-pre-submit: No search paths found");
         }
 
         $admin_fullname = 'Admin user';
@@ -517,9 +594,45 @@ h2#dbaseconfig{  min-height: 32px;}
             $config_output.= "\r\n# Initial Structural Plugin used: ".$structural_plugin."\r\n\r\n\r\n";
             }
 
-        //Grab MySQL settings
+        // Grab MySQL settings
+        // comment out original code
+        // $mysql_server = get_post('mysql_server');
+        //$mysql_db = get_post('mysql_db');
+        // end of comment out
+
+        // 2024-12-10 Debugging Additions
+        // Added by Claude 3.5 AI via Cursor IDE
+        
+        // In the form submission handler:
+        if (isset($_REQUEST['submit'])) {
         $mysql_server = get_post('mysql_server');
+            $mysql_username = trim(get_post('mysql_username')); 
+            $mysql_password = get_post('mysql_password');
         $mysql_db = get_post('mysql_db');
+            
+            $test_result = test_db_connection($mysql_server, $mysql_username, $mysql_password, $mysql_db);
+            
+            if (!$test_result['success']) {
+                switch($test_result['error_no']) {
+                    case 1045: // Access denied
+                        $errors['databaselogin'] = true;
+                        break;
+                    case 1049: // Unknown database
+                        $errors['databasedb'] = true;
+                        break;
+                    default:
+                        $errors['databaseserver'] = true;
+                        break;
+                }
+                $errors['database'] = $test_result['error'];
+                return;
+            }
+        
+            // Connection successful - continue with setup...
+        }
+
+        // End of Debugging Additions
+
 
         $db_connection_modes = array(
             "read_write" => array(
@@ -544,9 +657,11 @@ h2#dbaseconfig{  min-height: 32px;}
                 }
 
             // Check connection
+            // error_log("Check connection without database");
             $mysqli_connection = mysqli_connect($mysql_server, $mysql_username, $mysql_password);
             if($mysqli_connection === false)
                 {
+                error_log("Check connection without database failed" . "Error: " . mysqli_connect_error() . "Error number: " . mysqli_connect_errno());
                 switch(mysqli_errno($mysqli_connection))
                     {
                     case 1045:  //User login failure.
@@ -614,23 +729,29 @@ h2#dbaseconfig{  min-height: 32px;}
         //Check MySQL bin path (not required)
         $mysql_bin_path = sslash(get_post('mysql_bin_path'));
         if ((isset($mysql_bin_path)) && ($mysql_bin_path != '')) {
+            error_log("setup.php-post-submit: CheckingMySQL bin path = {$mysql_bin_path}");
             if (stripos($mysql_bin_path . '/mysqldump' . $exe_ext, 'phar://') !== false) {
                 exit($lang["setup-err_phar_injection"]);
             }
+            error_log("setup.php-post-submit: Checking if mysqldump exists at {$mysql_bin_path}/mysqldump{$exe_ext}");
             if (!file_exists($mysql_bin_path . '/mysqldump' . $exe_ext)) {
+                error_log("setup.php-post-submit: mysqldump does not exist at {$mysql_bin_path}/mysqldump{$exe_ext}");
                 $errors['mysqlbinpath'] = true;
             } else {
+                error_log("setup.php-post-submit: mysqldump exists at {$mysql_bin_path}/mysqldump{$exe_ext}");
                 $config_output .= "\$mysql_bin_path = '$mysql_bin_path';\r\n\r\n";
             }
         }
 
         //Check baseurl (required)
         $baseurl = sslash(get_post('baseurl'));
+        error_log("setup.php-post-submit: Checking baseurl = {$baseurl}");
         # In certain PHP versions there is a bug in filter_var using FILTER_VALIDATE_URL causing correct URLs containing a hyphen to fail.
         if (filter_var("http://www.filter-test.com", FILTER_VALIDATE_URL))
             {
             # The filter is working.
             $filterresult = filter_var($baseurl, FILTER_VALIDATE_URL);
+            error_log("setup: filterresult = Valid URL: {$filterresult}");
             }
         else
             {
@@ -649,6 +770,7 @@ h2#dbaseconfig{  min-height: 32px;}
             if (url_exists($baseurl.'/license.txt')){
                 $config_output .= "# Base URL of the installation\r\n";
                 $config_output .= "\$baseurl = '$baseurl';\r\n\r\n";
+                error_log("setup: Base URL is valid: {$baseurl}/license.txt exists");
             }
             else { //Under certain circumstances this test may fail, but the URL is still correct, so warn the user.
                 $warnings['baseurlverify']= true;
@@ -726,14 +848,24 @@ h2#dbaseconfig{  min-height: 32px;}
         $exiftool_path = sslash(get_post('exiftool_path'));
         $antiword_path = sslash(get_post('antiword_path'));
         $pdftotext_path = sslash(get_post('pdftotext_path'));
+        
+        error_log("setup: Checking supplied paths: " . 
+            "ImageMagick: $imagemagick_path, " .
+            "Ghostscript: $ghostscript_path, " . 
+            "FFmpeg: $ffmpeg_path, " .
+            "ExifTool: $exiftool_path, " .
+            "Antiword: $antiword_path, " .
+            "PDFtoText: $pdftotext_path");
 
         if ($imagemagick_path != '') {
             if (stripos($imagemagick_path . '/convert' . $exe_ext, 'phar://') !== false) {
                 exit($lang["setup-err_phar_injection"]);
             }
             if (!file_exists($imagemagick_path . '/convert' . $exe_ext)) {
+                error_log("setup: ImageMagick binary /convert does not exist at: {$imagemagick_path}");
                 $errors['imagemagick_path'] = true;
             } else {
+                error_log("setup: ImageMagick binary /convert exists at: {$imagemagick_path}");
                 $config_output .= "\$imagemagick_path = '$imagemagick_path';\r\n";
             }
         }
