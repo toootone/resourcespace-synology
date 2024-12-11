@@ -16,8 +16,7 @@ services:
     ports:
       - "${RS_PORT}:80"
     volumes:
-      - ./build/resourcespace/filestore:/var/www/html/filestore:rw
-      - ./build/resourcespace/include:/var/www/html/include:rw
+      - ./build/resourcespace:/var/www/html:rw
       - /dev/urandom:/dev/random:ro
       - /dev/urandom:/dev/urandom:ro
     environment:
@@ -132,6 +131,11 @@ services:
     build:
       context: ./build
       dockerfile: pdftotext.Dockerfile
+    container_name: resourcespace_pdftotext  # Updated to match naming convention
+    volumes:
+      - ${RS_DATA_PATH}/filestore:/tmp/workdir
+    networks:
+      - resourcespace-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "which", "pdftotext"]

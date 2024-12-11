@@ -37,7 +37,10 @@ RUN chmod +x /usr/local/bin/entropy-gatherer.sh
 
 # Copy ResourceSpace files
 COPY resourcespace/ /var/www/html/
-RUN chown -R www-data:www-data /var/www/html
+
+# Set permissions that work with both Apache and Resilio
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 775 /var/www/html
 
 # Custom entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
