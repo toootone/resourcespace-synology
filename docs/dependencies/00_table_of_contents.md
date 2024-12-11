@@ -9,7 +9,7 @@
 | ExifTool | /usr/bin/exiftool | ✅ Working |
 | Antiword | /usr/bin/antiword | ✅ Working |
 | PDFtoText | /usr/bin/pdftotext | ✅ Working |
-| MySQL Client | /usr/bin/mysql | ✅ Working |
+| MySQL Client | /usr/bin/mysqldump | ⚠️ Not Installed |
 
 ## Container Architecture
 All dependencies are now consolidated into the main ResourceSpace container for improved performance and simplified management:
@@ -26,7 +26,7 @@ resourcespace-custom/
 │   ├── docker-entrypoint.sh    # Container startup script
 │   ├── entropy-gatherer.sh     # Synology entropy fix
 │   └── resourcespace/          # ResourceSpace application files
-├── data/
+├���─ data/
 │   ├── db/                     # MariaDB data
 │   ├── filestore/              # Resource files
 │   ├── include/               # ResourceSpace configuration
@@ -41,6 +41,7 @@ resourcespace-custom/
 - [ExifTool Installation](04_Exiftool.md)
 - [Antiword Installation](05_AntiWord.md)
 - [PDFtoText Installation](06_PDFtoText.md)
+- [MySQL Client Installation](07_MySQL_Client.md)
 
 ## Logging and Debugging
 Debug logs are stored in `data/logs/debug.log` and persist across container restarts.

@@ -163,11 +163,4 @@ Each dependency is configured in the docker-compose.yml file and documented indi
 - [PDFtoText](../docs/dependencies/06_PDFtoText.md) - PDF text extraction
 - [MySQL Client](../docs/dependencies/07_MySQL_Client.md) - Database operations and backups
 
-Each dependency:
-- Runs in its own container
-- Shares the ResourceSpace network
-- Mounts the filestore directory
-- Uses consistent permissions (www-data:www-data)
-- Auto-restarts unless stopped
-
 Follow the individual installation guides for detailed configuration and testing instructions.

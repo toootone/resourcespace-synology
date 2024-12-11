@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     exiftool \
     antiword \
     poppler-utils \
+    default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install ImageMagick from dpokidov's repository
